@@ -1,4 +1,5 @@
-from sqlalchemy import  Column, Integer, String
+from sqlalchemy import  Column, ForeignKey, Integer, String, Boolean 
+from sqlalchemy.orm import relationship
 from .config import Base
 
 class User(Base):
@@ -7,12 +8,35 @@ class User(Base):
     username = Column(String)
     email = Column(String)
     password = Column(String)
-    book_id = Column(Integer, ForeignKey('book.id'))
 
-# make a model for the book table
+    books = relationship("Book", back_populates="Book")
+    books = relationship("Book", back_populates="Book")
+    # owner_books = relationship("Book", backref="owner")
+    # borrower_books = relationship("Book", backref="borrower")
+
 class Book(Base):
     __tablename__ = "book"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    author = Column(String)
- 
+    conditon = Column(String)
+    genre_id = Column(Integer, ForeignKey('genre.id'))
+    author_id = Column(Integer, ForeignKey('author.id'))
+    for_borrow = Column(Boolean)
+    owner_id = Column(Integer, ForeignKey('user.id'))
+    borrower_id = Column(Integer, ForeignKey('user.id'))
+    owner = relationship("User", back_populates="books", foreign_keys=[owner_id])
+    borrower = relationship("User", back_populates="books", foreign_keys=[borrower_id])
+
+
+class Genre(Base):
+    __tablename__ = "genre"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    books = relationship("Book", backref="genre")
+
+class author(Base):
+    __tablename__ = "author"
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    books = relationship("Book", backref="author")

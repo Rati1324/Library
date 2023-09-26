@@ -17,6 +17,7 @@ reuseable_oauth = OAuth2PasswordBearer(
 )
 
 async def get_current_user(token: str = Depends(reuseable_oauth)) -> SystemUser:
+    print("here!")
     try:
         payload = jwt.decode(
             token, JWT_SECRET_KEY, algorithms=[ALGORITHM]
@@ -42,5 +43,5 @@ async def get_current_user(token: str = Depends(reuseable_oauth)) -> SystemUser:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Could not find user",
         )
-    
+    print(SystemUser(**user))
     return SystemUser(**user)
