@@ -1,10 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from pydantic_settings import BaseSettings
 
 DATABASE_URL = 'sqlite:///./library.db'
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+class Settings(BaseSettings):
+    SECRET_KEY: str
+    REFRESH_SECRET_KEY: str
+
+    class Config:
+        env_file = '.env'
 
 SessionLocal = sessionmaker(autocommit=False, autoflush = False, bind=engine)
 Base = declarative_base()

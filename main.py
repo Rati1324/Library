@@ -1,9 +1,17 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, status, HTTPException, Depends
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema
+# from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from src.models import User
 from sqlalchemy.orm import Session
-from src.utils import get_hashed_password
+from src.utils import (
+    get_hashed_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+)
+from src.deps import get_current_user
 
 app = FastAPI()
 
@@ -24,6 +32,12 @@ def greet():
 async def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
+@app.get("/clear_users")
+async def clear_users(db: Session = Depends(get_db)):
+    db.query(User).delete()
+    db.commit()
+    return {"result": "all users deleted"}
+
 @app.post("/users")
 async def create_user(user: UserSchema, db: Session = Depends(get_db)):
     db_user = User(username=user.username, email=user.email, password=user.password)
@@ -34,7 +48,6 @@ async def create_user(user: UserSchema, db: Session = Depends(get_db)):
 
 @app.post("/signup")
 async def signup(db: Session = Depends(get_db), user_data: UserSchema = None):
-    # find user in the db based on user_data.email
     user = db.query(User).filter_by(email=user_data.email).first()
     if user is not None:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -50,3 +63,28 @@ async def signup(db: Session = Depends(get_db), user_data: UserSchema = None):
     db.refresh(db_user)
 
     return {"result": "user successfully created"}
+
+@app.post('/login', summary="Create access and refresh tokens for user", response_model=TokenSchema)
+async def login(db: Session = Depends(get_db), user_data: UserLoginSchema = None):
+    user = db.query(User).filter_by(email=user_data.email).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
+
+    hashed_pass = user.password
+    if not verify_password(user_data.password, hashed_pass):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
+    return {
+        # "access_token": create_access_token(user.email),
+        "access_token": create_access_token("asdas"),
+        "refresh_token": create_refresh_token(user.email),
+    }
+
+@app.get('/me', summary='Get details of currently logged in user')
+async def get_me(user: User = Depends(get_current_user)):
+    return user
