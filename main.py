@@ -10,6 +10,7 @@ from src.utils import (
     verify_password,
     create_access_token,
     create_refresh_token,
+    decode_jwt,
 )
 from src.jwt_bearer import JWTBearer
 
@@ -86,7 +87,7 @@ async def login(db: Session = Depends(get_db), user_data: UserLoginSchema = None
 
 # @app.post("/book", dependencies=[Depends(JWTBearer())])
 @app.post("/book")
-async def insert_book(db: Session = Depends(get_db), book_data: BookSchema = None):
+async def insert_book(db: Session = Depends(get_db), dependencies = Depends(JWTBearer()), book_data: BookSchema = None):
     genre = db.query(Genre).filter_by(name=book_data.genre).first()
     if genre is None:
         genre = Genre(name=book_data.genre)
@@ -107,14 +108,17 @@ async def insert_book(db: Session = Depends(get_db), book_data: BookSchema = Non
     else:
         book_data.author = author.id
 
+    decoded_token = decode_jwt(dependencies)
+    current_user = db.query(User).filter_by(email=decoded_token["sub"]).first().id
+
     book = Book(
         title=book_data.title,
         condition=book_data.condition,
         genre_id=book_data.genre,
         author_id=book_data.author,
         for_borrow=book_data.for_borrow,
-        owner_id=book_data.owner_id,
-        borrower_id=book_data.borrower,
+        owner_id=current_user,
+        # borrower_id=book_data.borrower,
     )
 
     db.add(book)
