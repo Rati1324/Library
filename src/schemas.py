@@ -37,9 +37,12 @@ class TokenSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class SystemUser(UserLoginSchema):
-    password: str
-
 class TokenPayload(BaseModel):
     sub: str = None
     exp: int = None
+
+class BorrowRequestSchema(BaseModel):
+    book_id: int = Field(default=None)
+
+    class Config:
+        from_attributes = True

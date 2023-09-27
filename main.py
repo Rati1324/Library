@@ -1,9 +1,9 @@
-from fastapi import FastAPI, status, HTTPException, Depends
+from fastapi import FastAPI, status, HTTPException, Depends, Request
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, BorrowRequestSchema
 # from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
-from src.models import User, Genre, Book, Author
+from src.models import User, Genre, Book, Author, Borrowing
 from sqlalchemy.orm import Session
 from src.utils import (
     get_hashed_password,
@@ -125,6 +125,29 @@ async def insert_book(db: Session = Depends(get_db), dependencies = Depends(JWTB
     db.commit()
     db.refresh(book)
     return book
+
+@app.post("/request_borrow")
+async def request_borrow(borrow_request: BorrowRequestSchema, db: Session = Depends(get_db), dependencies = Depends(JWTBearer())):
+    decoded_token = decode_jwt(dependencies)
+    current_user = db.query(User).filter_by(email=decoded_token["sub"]).first().id
+
+    book_id = borrow_request.book_id
+    borrowings = db.query(Borrowing).filter_by(book_id=book_id).first()
+
+    if borrowings == None:
+        borrowings = Borrowing(
+            book_id=book_id,
+            requester_id=current_user,
+        )
+        db.add(borrowings)
+        db.commit()
+        db.refresh(borrowings)
+    else:
+        borrowings.requester_id = current_user
+        db.commit()
+        db.refresh(borrowings)
+
+    return borrowings
 
 @app.get("/test")
 async def get_me(dependencies = Depends(JWTBearer())):

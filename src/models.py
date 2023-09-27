@@ -11,6 +11,7 @@ class User(Base):
 
     owner_books = relationship("Book", backref="owner", foreign_keys="Book.owner_id")
     borrower_books = relationship("Book", backref="borrower",foreign_keys="Book.borrower_id")
+    borrowings_books = relationship("Borrowing", backref="borrow_requester", foreign_keys="Borrowing.requester_id")
 
 class Book(Base):
     __tablename__ = "book"
@@ -24,6 +25,8 @@ class Book(Base):
     owner_id = Column(Integer, ForeignKey('user.id'), nullable=True)
     borrower_id = Column(Integer, ForeignKey('user.id'), nullable=True)
 
+    borrowings_books = relationship("Borrowing", backref="book", foreign_keys="Borrowing.book_id")
+
 class Genre(Base):
     __tablename__ = "genre"
     id = Column(Integer, primary_key=True, index=True)
@@ -35,3 +38,9 @@ class Author(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     books = relationship("Book", backref="author")
+
+class Borrowing(Base):
+    __tablename__ = "borrowing"
+    id = Column(Integer, primary_key=True, index=True)
+    book_id = Column(Integer, ForeignKey('book.id'))
+    requester_id = Column(Integer, ForeignKey('user.id'))
