@@ -11,7 +11,7 @@ from src.utils import (
     create_access_token,
     create_refresh_token,
 )
-from src.deps import get_current_user
+from src.jwt_bearer import JWTBearer
 
 app = FastAPI()
 
@@ -85,6 +85,6 @@ async def login(db: Session = Depends(get_db), user_data: UserLoginSchema = None
         "refresh_token": create_refresh_token(user.email),
     }
 
-@app.get('/me', summary='Get details of currently logged in user')
-async def get_me(user: User = Depends(get_current_user)):
-    return user
+@app.get("/test", dependencies=[Depends(JWTBearer())])
+async def get_me():
+    return {"data": "sads"}
