@@ -1,4 +1,4 @@
-import os
+import os, time
 from datetime import datetime, timedelta
 from typing import Union, Any
 from jose import jwt
@@ -8,8 +8,8 @@ from decouple import config
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 
-ALGORITHM = "HS256"
 
+ALGORITHM = config('ALGORITHM')
 JWT_SECRET_KEY = config('SECRET_KEY')
 JWT_REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
@@ -42,8 +42,8 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) ->
     return encoded_jwt
 
 def decode_jwt(token: str):
-    try:
-        decode_token = jwt.decode(token, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-        return decode_token if decode_token["exp"] >= time.time() else None
-    except:
-        return {}
+    # try:
+    decode_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+    return decode_token if decode_token["exp"] >= time.time() else False
+    # except:
+    #     return {}

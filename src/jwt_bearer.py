@@ -4,11 +4,9 @@ from .utils import decode_jwt
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
-        print("init")
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        print(request)
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
@@ -20,8 +18,11 @@ class JWTBearer(HTTPBearer):
             raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
 
     def verify_jwt(self, jwtoken: str):
-        isTokenValid: bool = False
-        payload = decode_jwt(jwtoken)
+        isTokenValid = False
+        try:
+            payload = decode_jwt(jwtoken)
+        except:
+            payload = None
         if payload:
-            isTokenValied = True
+            isTokenValid = True
         return isTokenValid

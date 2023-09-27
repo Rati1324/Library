@@ -16,12 +16,13 @@ class Book(Base):
     __tablename__ = "book"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    conditon = Column(String)
+    location = Column(String)
+    condition = Column(String)
     genre_id = Column(Integer, ForeignKey('genre.id'))
     author_id = Column(Integer, ForeignKey('author.id'))
     for_borrow = Column(Boolean)
-    owner_id = Column(Integer, ForeignKey('user.id'))
-    borrower_id = Column(Integer, ForeignKey('user.id'))
+    owner_id = Column(Integer, ForeignKey('user.id'), nullable=True)
+    borrower_id = Column(Integer, ForeignKey('user.id'), nullable=True)
 
 class Genre(Base):
     __tablename__ = "genre"
@@ -29,9 +30,8 @@ class Genre(Base):
     name = Column(String)
     books = relationship("Book", backref="genre")
 
-class author(Base):
+class Author(Base):
     __tablename__ = "author"
     id = Column(Integer, primary_key=True, index=True)
-    first_name = Column(String)
-    last_name = Column(String)
+    name = Column(String)
     books = relationship("Book", backref="author")

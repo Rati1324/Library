@@ -1,5 +1,5 @@
 from typing import List, Optional, Generic, TypeVar
-from pydantic import BaseModel , Field
+from pydantic import BaseModel, Field
 
 # T = TypeVar('T')
 
@@ -11,6 +11,17 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+# create a book schema, based on the model Book in models.py
+class BookSchema(BaseModel):
+    title: str = Field(default=None)
+    conditon: str = Field(default=None)
+    genre: str = Field(default=None)
+    condition: str = Field(default=None)
+    author: str = Field(default=None)
+    for_borrow: bool = Field(default=None)
+    owner: int = Field(default=None)
+    borrower: int = Field(default=None)
 
 class UserLoginSchema(BaseModel):
     email: str = Field(default=None)

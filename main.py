@@ -1,9 +1,9 @@
 from fastapi import FastAPI, status, HTTPException, Depends
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema, UserLoginSchema, TokenSchema
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema
 # from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import OAuth2PasswordRequestForm
-from src.models import User
+from src.models import User, Genre, Book, Author
 from sqlalchemy.orm import Session
 from src.utils import (
     get_hashed_password,
@@ -80,11 +80,48 @@ async def login(db: Session = Depends(get_db), user_data: UserLoginSchema = None
             detail="Incorrect email or password"
         )
     return {
-        # "access_token": create_access_token(user.email),
-        "access_token": create_access_token("asdas"),
+        "access_token": create_access_token(user.email),
         "refresh_token": create_refresh_token(user.email),
     }
 
-@app.get("/test", dependencies=[Depends(JWTBearer())])
-async def get_me():
-    return {"data": "sads"}
+# @app.post("/book", dependencies=[Depends(JWTBearer())])
+@app.post("/book")
+async def insert_book(db: Session = Depends(get_db), book_data: BookSchema = None):
+    genre = db.query(Genre).filter_by(name=book_data.genre).first()
+    if genre is None:
+        genre = Genre(name=book_data.genre)
+        db.add(genre)
+        db.commit()
+        db.refresh(genre)
+        genre_id = genre.id
+    else:
+        book_data.genre = genre.id
+    
+    author = db.query(Author).filter_by(name=book_data.author).first()
+    if author is None:
+        author = Author(name=book_data.author)
+        db.add(author)
+        db.commit()
+        db.refresh(author)
+        author_id = author.id
+    else:
+        book_data.author = author.id
+
+    book = Book(
+        title=book_data.title,
+        condition=book_data.condition,
+        genre_id=book_data.genre,
+        author_id=book_data.author,
+        for_borrow=book_data.for_borrow,
+        owner_id=book_data.owner_id,
+        borrower_id=book_data.borrower,
+    )
+
+    db.add(book)
+    db.commit()
+    db.refresh(book)
+    return book
+
+@app.get("/test")
+async def get_me(dependencies = Depends(JWTBearer())):
+    return {"data": dependencies}
