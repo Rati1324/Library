@@ -9,10 +9,8 @@ class User(Base):
     email = Column(String)
     password = Column(String)
 
-    books = relationship("Book", back_populates="Book")
-    books = relationship("Book", back_populates="Book")
-    # owner_books = relationship("Book", backref="owner")
-    # borrower_books = relationship("Book", backref="borrower")
+    owner_books = relationship("Book", backref="owner", foreign_keys="Book.owner_id")
+    borrower_books = relationship("Book", backref="borrower",foreign_keys="Book.borrower_id")
 
 class Book(Base):
     __tablename__ = "book"
@@ -24,9 +22,6 @@ class Book(Base):
     for_borrow = Column(Boolean)
     owner_id = Column(Integer, ForeignKey('user.id'))
     borrower_id = Column(Integer, ForeignKey('user.id'))
-    owner = relationship("User", back_populates="books", foreign_keys=[owner_id])
-    borrower = relationship("User", back_populates="books", foreign_keys=[borrower_id])
-
 
 class Genre(Base):
     __tablename__ = "genre"
