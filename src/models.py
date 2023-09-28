@@ -21,11 +21,10 @@ class Book(Base):
     condition = Column(String)
     genre_id = Column(Integer, ForeignKey('genre.id'))
     author_id = Column(Integer, ForeignKey('author.id'))
-    for_borrow = Column(Boolean)
+    giving_away = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey('user.id'), nullable=True)
-    borrower_id = Column(Integer, ForeignKey('user.id'), nullable=True)
 
-    borrowings_books = relationship("Borrowing", backref="book", foreign_keys="Borrowing.book_id")
+    giveaway_books = relationship("Giveaway", backref="book", foreign_keys="Giveaway.book_id")
 
 class Genre(Base):
     __tablename__ = "genre"
@@ -39,7 +38,7 @@ class Author(Base):
     name = Column(String)
     books = relationship("Book", backref="author")
 
-class Borrowing(Base):
+class Giveaway(Base):
     __tablename__ = "borrowing"
     id = Column(Integer, primary_key=True, index=True)
     book_id = Column(Integer, ForeignKey('book.id'))
