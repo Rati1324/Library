@@ -15,8 +15,6 @@ JWT_REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 def get_hashed_password(password: str) -> str:
     return hash_context.hash(password)
 
@@ -43,22 +41,9 @@ def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) ->
     encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth_2_scheme)):
-    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credential_exception
-       
-        token_data = TokenData(username=username)
-
-    except JWTError:
-        raise credential_exception
-    
-    user = get_user(db, username=token_data.username)
-    if user is None:
-        raise credential_exception
-       
-    return user
+def decode_jwt(token: str):
+    # try:
+    decode_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+    return decode_token if decode_token["exp"] >= time.time() else False
+    # except:
+    #     return {}

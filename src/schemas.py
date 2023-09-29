@@ -41,7 +41,7 @@ class TokenPayload(BaseModel):
     sub: str = None
     exp: int = None
 
-class BookRequestSchema(BaseModel):
+class GiveawaySchema(BaseModel):
     book_id: int = Field(default=None)
 
     class Config:
