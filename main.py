@@ -20,7 +20,6 @@ from src.utils import (
     JWT_SECRET_KEY,
     JWT_REFRESH_SECRET_KEY
 )
-from src.jwt_bearer import JWTBearer
 from src.config import get_db
 
 app = FastAPI()

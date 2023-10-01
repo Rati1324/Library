@@ -23,8 +23,6 @@ JWT_REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-
 def get_hashed_password(password: str) -> str:
     return hash_context.hash(password)
 
@@ -58,7 +56,6 @@ def decode_jwt(token: str):
     # except:
     #     return {}
 
-# receives token and decodes it, returns user
 async def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth_2_scheme)):
     credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
