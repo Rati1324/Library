@@ -18,7 +18,6 @@ class BookSchema(BaseModel):
     title: str = Field(default=None)
     genre: str = Field(default=None)
     condition: str = Field(default=None)
-    location: str = Field(default=None)
     author: str = Field(default=None)
 
 class UserLoginSchema(BaseModel):
@@ -52,8 +51,8 @@ class BookRequestSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class AcceptReqeustSchema(BaseModel):
-    book_request_id: int = Field(default=None)
+class BookRequestAcceptSchema(BaseModel):
+    location: str = Field(default=None)
 
     class Config:
         from_attributes = True

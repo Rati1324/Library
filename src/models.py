@@ -15,7 +15,6 @@ class Book(Base):
     __tablename__ = "book"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
-    location = Column(String)
     condition = Column(String)
     genre_id = Column(Integer, ForeignKey('genre.id'))
     author_id = Column(Integer, ForeignKey('author.id'))
@@ -40,4 +39,5 @@ class BookRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
     book_id = Column(Integer, ForeignKey('book.id'))
     requester_id = Column(Integer, ForeignKey('user.id'))
+    location = Column(String)
     accepted = Column(Boolean, default=False)

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Depends, Request
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, BookRequestSchema, Token
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, BookRequestSchema, BookRequestAcceptSchema, Token
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from src.models import User, Genre, Book, Author, BookRequest
 from sqlalchemy.orm import Session
@@ -91,7 +91,6 @@ async def check_existing_rows(db: Session, table, value):
         row_id = row.id
     else:
         row_id = row.id
-    print(row)
     return row_id
 
 # @app.post("/book", dependencies=[Depends(JWTBearer())])
@@ -187,10 +186,10 @@ async def get_my_requests(db: Session = Depends(get_db), dependencies = Depends(
     current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
     requests = db.query(BookRequest).filter(BookRequest.requester_id==current_user).all()
-    return {"data": requests}
+    return {"requests": requests}
 
 @app.put("/accept_request")
-async def accept_request(request_id: int, db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
+async def accept_request(db: Session = Depends(get_db), dependencies = Depends(get_current_user), request_id: int = None, request_data: BookRequestAcceptSchema = None):
     current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
     # search for request with request id and owner id, you need to join book to get the owner id
@@ -198,11 +197,12 @@ async def accept_request(request_id: int, db: Session = Depends(get_db), depende
     if request is None:
         raise HTTPException(status_code=400, detail="Request not found")
 
+    request.location = request_data.location
     request.accepted = True
     db.commit()
 
     db.query(BookRequest).filter(BookRequest.book_id==request.book_id, BookRequest.accepted==False).delete()
-    # db.commit()
+    db.commit()
     return {"result": "request accepted"}
 
 # @app.post("/test", dependencies=[Depends(get_current_user)])
