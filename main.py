@@ -1,6 +1,6 @@
 from fastapi import FastAPI, status, HTTPException, Depends, Request
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, GiveawaySchema, Token, EditBookSchema
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, GiveawaySchema, Token
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from src.models import User, Genre, Book, Author, Giveaway
 from sqlalchemy.orm import Session
@@ -104,10 +104,9 @@ async def check_existing_rows(db: Session, table, value):
 # @app.post("/book", dependencies=[Depends(JWTBearer())])
 @app.post("/book")
 async def insert_book(db: Session = Depends(get_db), dependencies = Depends(get_current_user), book_data: BookSchema = None):
+    current_user = db.query(User).filter_by(username=dependencies.username).first().id
     genre_id = await check_existing_rows(db, Genre, book_data.genre)
     author_id = await check_existing_rows(db, Author, book_data.author)
-
-    current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
     book = Book(
         title=book_data.title,
@@ -122,26 +121,41 @@ async def insert_book(db: Session = Depends(get_db), dependencies = Depends(get_
     db.refresh(book)
     return book
 
-# endpoint for editing book, send all data in the body
 @app.put("/book")
-async def edit_book(db: Session = Depends(get_db), dependencies = Depends(get_current_user), book_data: EditBookSchema = None):
+async def edit_book(db: Session = Depends(get_db), dependencies = Depends(get_current_user), book_data: BookSchema = None, book_id: int = None):
     current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
-    book = db.query(Book).filter_by(owner_id=current_user).first()
+    # search for book by book id and owner id
+    book = db.query(Book).filter_by(id=book_id, owner_id=current_user).first()
+
     if book is None:
         raise HTTPException(status_code=400, detail="Book not found")
 
-    book = Book(
-        title=book_data.title,
-        condition=book_data.condition,
-        genre_id=book_data.genre,
-        author_id=book_data.author,
-        owner_id=current_user,
-    )
+    genre_id = await check_existing_rows(db, Genre, book_data.genre)
+    author_id = await check_existing_rows(db, Author, book_data.author)
+
+    book.id = book_id
+    book.title = book_data.title
+    book.condition = book_data.condition
+    book.genre_id = genre_id
+    book.author_id = author_id
+    book.location = book_data.location
 
     db.commit()
     db.refresh(book)
     return book
+
+@app.delete("/book")
+async def delete_book(db: Session = Depends(get_db), dependencies = Depends(get_current_user), book_id: int = None):
+    current_user = db.query(User).filter_by(username=dependencies.username).first().id
+
+    book = db.query(Book).filter_by(id=book_id, owner_id=current_user).first()
+    if book is None:
+        raise HTTPException(status_code=400, detail="Book not found")
+
+    db.delete(book)
+    db.commit()
+    return {"result": "book deleted"}
 
 @app.post("/request_book", dependencies = [Depends(get_current_user)])
 async def request_borrow(book_request: GiveawaySchema, db: Session = Depends(get_db), dependencies = Depends(get_current_user)):

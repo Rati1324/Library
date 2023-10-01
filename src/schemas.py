@@ -27,6 +27,7 @@ class EditBookSchema(BaseModel):
     genre: str = Field(default=None)
     condition: str = Field(default=None)
     location: str = Field(default=None)
+    author: str = Field(default=None)
  
 class UserLoginSchema(BaseModel):
     email: str = Field(default=None)
