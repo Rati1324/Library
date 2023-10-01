@@ -10,8 +10,6 @@ class User(Base):
     password = Column(String)
 
     owner_books = relationship("Book", backref="owner", foreign_keys="Book.owner_id")
-    borrower_books = relationship("Book", backref="borrower",foreign_keys="Book.borrower_id")
-    borrowings_books = relationship("Borrowing", backref="borrow_requester", foreign_keys="Borrowing.requester_id")
 
 class Book(Base):
     __tablename__ = "book"
@@ -21,7 +19,6 @@ class Book(Base):
     condition = Column(String)
     genre_id = Column(Integer, ForeignKey('genre.id'))
     author_id = Column(Integer, ForeignKey('author.id'))
-    giving_away = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey('user.id'), nullable=True)
 
     giveaway_books = relationship("Giveaway", backref="book", foreign_keys="Giveaway.book_id")
