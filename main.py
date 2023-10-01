@@ -5,7 +5,6 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from src.models import User, Genre, Book, Author, BookRequest
 from sqlalchemy.orm import Session
 from datetime import timedelta
-from decouple import config
 from src.utils import (
     get_hashed_password,
     verify_password,
@@ -14,27 +13,12 @@ from src.utils import (
     decode_jwt,
     get_current_user,
     oauth_2_scheme, 
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    REFRESH_TOKEN_EXPIRE_MINUTES,
-    ALGORITHM,
-    JWT_SECRET_KEY,
-    JWT_REFRESH_SECRET_KEY
 )
 from src.config import get_db
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
-
-@app.get("/users")
-async def get_users(db: Session = Depends(get_db)):
-    return db.query(User).all()
-
-# @app.get("/clear_users")
-# async def clear_users(db: Session = Depends(get_db)):
-#     db.query(User).delete()
-#     db.commit()
-#     return {"result": "all users deleted"}
 
 @app.post("/signup")
 async def signup(db: Session = Depends(get_db), user_data: UserSchema = None):

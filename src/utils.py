@@ -4,7 +4,6 @@ from typing import Union, Any
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from dotenv import load_dotenv
-from decouple import config
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from .schemas import TokenSchema
@@ -12,14 +11,11 @@ from sqlalchemy.orm import Session
 from .config import SessionLocal
 from src.models import User
 from .config import get_db
+from decouple import config
 oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 ALGORITHM = config('ALGORITHM')
 JWT_SECRET_KEY = config('SECRET_KEY')
-JWT_REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
