@@ -27,7 +27,7 @@ Make sure you have the following software installed on your system:
     API documentation (Swagger): http://localhost:8000/docs
     Interactive ReDoc documentation: http://localhost:8000/redoc
 
-You can now interact with and test your FastAPI application using the provided documentation.
+    You can now interact with and test your FastAPI application using the provided documentation.
 
 To stop the application and remove the Docker containers, press Ctrl+C in the terminal where docker-compose up is running, and then run:
    
