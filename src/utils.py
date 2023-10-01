@@ -26,31 +26,9 @@ def verify_password(password: str, hashed_pass: str) -> bool:
     return hash_context.verify(password, hashed_pass)
 
 def create_access_token(subject: str, expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
-    else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    to_encode = {"exp": expires_delta, "sub": str(subject)}
+    to_encode = {"sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
     return encoded_jwt
-
-def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
-    else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    
-    to_encode = {"exp": expires_delta, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
-    return encoded_jwt
-
-def decode_jwt(token: str):
-    # try:
-    decode_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-    return decode_token if decode_token["exp"] >= time.time() else False
-    # except:
-    #     return {}
 
 async def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth_2_scheme)):
     credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})

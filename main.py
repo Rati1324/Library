@@ -9,8 +9,6 @@ from src.utils import (
     get_hashed_password,
     verify_password,
     create_access_token,
-    create_refresh_token,
-    decode_jwt,
     get_current_user,
     oauth_2_scheme, 
 )
@@ -55,7 +53,6 @@ async def login(db: Session = Depends(get_db), user_data: OAuth2PasswordRequestF
             detail="Incorrect email or password"
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(user.username)
     return {"access_token": access_token, "token_type": "bearer"}
 
