@@ -7,6 +7,13 @@ DATABASE_URL = 'sqlite:///./library.db'
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
+def get_db():
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
+
 class Settings(BaseSettings):
     SECRET_KEY: str
     REFRESH_SECRET_KEY: str

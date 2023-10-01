@@ -21,28 +21,21 @@ from src.utils import (
     JWT_REFRESH_SECRET_KEY
 )
 from src.jwt_bearer import JWTBearer
+from src.config import get_db
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
-
-def get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
 @app.get("/users")
 async def get_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
-@app.get("/clear_users")
-async def clear_users(db: Session = Depends(get_db)):
-    db.query(User).delete()
-    db.commit()
-    return {"result": "all users deleted"}
+# @app.get("/clear_users")
+# async def clear_users(db: Session = Depends(get_db)):
+#     db.query(User).delete()
+#     db.commit()
+#     return {"result": "all users deleted"}
 
 @app.post("/signup")
 async def signup(db: Session = Depends(get_db), user_data: UserSchema = None):
@@ -181,14 +174,37 @@ async def request_book(book_request: BookRequestSchema, db: Session = Depends(ge
 
     return {"result": "book requested"}
 
-@app.get("/requests")
+@app.get("/requests", tags=["Requests for my books"])
 async def get_requests(db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
     current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
     # get all requests from the BookRequest table that have books that the current user owns
     requests = db.query(BookRequest).join(Book).filter(Book.owner_id==current_user).all()
+    return {"requests": requests}
+
+@app.get("/my_requests", tags=["Requests that I've sent"])
+async def get_my_requests(db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
+    current_user = db.query(User).filter_by(username=dependencies.username).first().id
+
+    requests = db.query(BookRequest).filter(BookRequest.requester_id==current_user).all()
     return {"data": requests}
 
-@app.post("/test", dependencies=[Depends(get_current_user)])
-async def get_me(user: dict):
-    return {"data": user}
+@app.put("/accept_request")
+async def accept_request(request_id: int, db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
+    current_user = db.query(User).filter_by(username=dependencies.username).first().id
+
+    # search for request with request id and owner id, you need to join book to get the owner id
+    request = db.query(BookRequest).join(Book).filter(Book.owner_id==current_user, BookRequest.id==request_id).first()
+    if request is None:
+        raise HTTPException(status_code=400, detail="Request not found")
+
+    request.accepted = True
+    db.commit()
+
+    db.query(BookRequest).filter(BookRequest.book_id==request.book_id, BookRequest.accepted==False).delete()
+    # db.commit()
+    return {"result": "request accepted"}
+
+# @app.post("/test", dependencies=[Depends(get_current_user)])
+# async def get_me(user: dict):
+#     return {"data": user}

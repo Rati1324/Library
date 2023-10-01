@@ -11,7 +11,7 @@ from .schemas import TokenSchema
 from sqlalchemy.orm import Session
 from .config import SessionLocal
 from src.models import User
-
+from .config import get_db
 oauth_2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -23,12 +23,7 @@ JWT_REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
 hash_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
+
 
 def get_hashed_password(password: str) -> str:
     return hash_context.hash(password)

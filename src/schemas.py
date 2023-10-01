@@ -51,3 +51,9 @@ class BookRequestSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AcceptReqeustSchema(BaseModel):
+    book_request_id: int = Field(default=None)
+
+    class Config:
+        from_attributes = True

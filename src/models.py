@@ -40,3 +40,4 @@ class BookRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
     book_id = Column(Integer, ForeignKey('book.id'))
     requester_id = Column(Integer, ForeignKey('user.id'))
+    accepted = Column(Boolean, default=False)
