@@ -1,8 +1,8 @@
 from fastapi import FastAPI, status, HTTPException, Depends, Request
 from src.config import Base, engine, SessionLocal
-from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, GiveawaySchema, Token
+from src.schemas import UserSchema, UserLoginSchema, TokenSchema, BookSchema, BookRequestSchema, Token
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from src.models import User, Genre, Book, Author, Giveaway
+from src.models import User, Genre, Book, Author, BookRequest
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from decouple import config
@@ -157,29 +157,37 @@ async def delete_book(db: Session = Depends(get_db), dependencies = Depends(get_
     db.commit()
     return {"result": "book deleted"}
 
-@app.post("/request_book", dependencies = [Depends(get_current_user)])
-async def request_borrow(book_request: GiveawaySchema, db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
+@app.post("/request_book")
+async def request_book(book_request: BookRequestSchema, db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
     current_user = db.query(User).filter_by(username=dependencies.username).first().id
     book_id = book_request.book_id
 
-    giveaway = Giveaway(
+    check_book = db.query(Book).filter_by(id=book_id, owner_id=current_user).first()
+    if check_book:
+        raise HTTPException(status_code=400, detail="You can't request your own book")
+
+    check_book = db.query(BookRequest).filter_by(book_id=book_id, requester_id=current_user).first()
+    if check_book:
+        raise HTTPException(status_code=400, detail="You already requested this book")
+
+    request = BookRequest(
         book_id=book_id,
         requester_id=current_user,
     )
 
-    db.add(giveaway)
-    return giveaway
+    db.add(request)
+    db.commit()
+    db.refresh(request)
 
-@app.get("/borrowings")
-async def get_borrowings(db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
-    decoded_token = decode_jwt(dependencies)
-    current_user = db.query(User).filter_by(email=decoded_token["sub"]).first().id
+    return {"result": "book requested"}
 
-    # find books that the user owns that are also in the borrowings table
-    borrowings = db.query(Book).filter_by(owner_id=current_user).join(Giveaway).all()
-    print(borrowings)
-    return borrowings
+@app.get("/requests")
+async def get_requests(db: Session = Depends(get_db), dependencies = Depends(get_current_user)):
+    current_user = db.query(User).filter_by(username=dependencies.username).first().id
 
+    # get all requests from the BookRequest table that have books that the current user owns
+    requests = db.query(BookRequest).join(Book).filter(Book.owner_id==current_user).all()
+    return {"data": requests}
 
 @app.post("/test", dependencies=[Depends(get_current_user)])
 async def get_me(user: dict):

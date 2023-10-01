@@ -21,14 +21,6 @@ class BookSchema(BaseModel):
     location: str = Field(default=None)
     author: str = Field(default=None)
 
-class EditBookSchema(BaseModel):
-    id: int = Field(default=None)
-    title: str = Field(default=None)
-    genre: str = Field(default=None)
-    condition: str = Field(default=None)
-    location: str = Field(default=None)
-    author: str = Field(default=None)
- 
 class UserLoginSchema(BaseModel):
     email: str = Field(default=None)
     password: str = Field(default=None)
@@ -54,7 +46,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class GiveawaySchema(BaseModel):
+class BookRequestSchema(BaseModel):
     book_id: int = Field(default=None)
 
     class Config:

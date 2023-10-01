@@ -21,7 +21,7 @@ class Book(Base):
     author_id = Column(Integer, ForeignKey('author.id'))
     owner_id = Column(Integer, ForeignKey('user.id'), nullable=True)
 
-    giveaway_books = relationship("Giveaway", backref="book", foreign_keys="Giveaway.book_id")
+    bookRequest_books = relationship("BookRequest", backref="book", foreign_keys="BookRequest.book_id")
 
 class Genre(Base):
     __tablename__ = "genre"
@@ -35,8 +35,8 @@ class Author(Base):
     name = Column(String)
     books = relationship("Book", backref="author")
 
-class Giveaway(Base):
-    __tablename__ = "borrowing"
+class BookRequest(Base):
+    __tablename__ = "bookRequest"
     id = Column(Integer, primary_key=True, index=True)
     book_id = Column(Integer, ForeignKey('book.id'))
     requester_id = Column(Integer, ForeignKey('user.id'))
